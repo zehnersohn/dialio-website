@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dialio — KI-Assistent für Handwerker & Dienstleister</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#03050A;--bg2:#070C14;--surface:#0C1220;--surface2:#111929;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#EEF2FF;--muted:#6B7A99;--muted2:#8B9ABB;
+  --cyan:#00D4FF;--cyan-dim:rgba(0,212,255,0.12);--cyan-glow:rgba(0,212,255,0.25);
+  --emerald:#00FFB2;--emerald-dim:rgba(0,255,178,0.1);
+  --violet:#7C3AFF;--violet-dim:rgba(124,58,255,0.12);
+  --amber:#FFB347;--r:14px;--r-sm:9px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden;cursor:none}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:998;opacity:.5}
+
+.cursor{position:fixed;width:10px;height:10px;background:var(--cyan);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:screen;transition:width .2s,height .2s}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(0,212,255,0.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;padding:18px 52px;background:rgba(3,5,10,0.8);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:22px;color:var(--text);text-decoration:none;letter-spacing:-.5px}
+.nav-logo em{color:var(--cyan);font-style:normal}
+.nav-links{display:flex;gap:32px;list-style:none}
+.nav-links a{color:var(--muted2);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-pill{display:flex;align-items:center;gap:8px;background:var(--cyan);color:#000;border:none;padding:9px 20px;border-radius:100px;font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;cursor:none;transition:all .2s;box-shadow:0 0 28px var(--cyan-glow)}
+.nav-pill:hover{transform:scale(1.04);box-shadow:0 0 50px var(--cyan-glow)}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:160px 24px 100px;position:relative;overflow:hidden}
+.hero-orb1{position:absolute;width:900px;height:900px;background:radial-gradient(circle,rgba(0,212,255,0.07) 0%,transparent 65%);top:-200px;left:50%;transform:translateX(-50%);pointer-events:none;animation:orb1 8s ease-in-out infinite}
+.hero-orb2{position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(124,58,255,0.06) 0%,transparent 65%);bottom:-100px;right:-150px;pointer-events:none;animation:orb2 10s ease-in-out infinite}
+@keyframes orb1{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.08)}}
+@keyframes orb2{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.025) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%)}
+
+.hero-tag{display:inline-flex;align-items:center;gap:9px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.18);border-radius:100px;padding:6px 16px;font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--cyan);margin-bottom:36px;text-transform:uppercase}
+.live-dot{width:7px;height:7px;background:var(--emerald);border-radius:50%;box-shadow:0 0 10px var(--emerald);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+h1.hero-title{font-family:'Cabinet Grotesk',sans-serif;font-size:clamp(52px,7vw,96px);font-weight:900;line-height:.98;letter-spacing:-3px;margin-bottom:32px;max-width:860px}
+.hero-title .line2{background:linear-gradient(90deg,var(--cyan) 0%,var(--emerald) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-title .line3{color:rgba(238,242,255,0.35)}
+.hero-sub{font-size:clamp(16px,2vw,19px);color:var(--muted2);max-width:520px;margin-bottom:48px;line-height:1.65}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:72px}
+.btn-cyan{background:var(--cyan);color:#000;border:none;padding:15px 34px;border-radius:100px;font-family:'Instrument Sans',sans-serif;font-size:15px;font-weight:600;cursor:none;transition:all .2s;box-shadow:0 0 40px rgba(0,212,255,0.3)}
+.btn-cyan:hover{transform:translateY(-2px);box-shadow:0 0 70px rgba(0,212,255,0.5)}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);padding:15px 34px;border-radius:100px;font-family:'Instrument Sans',sans-serif;font-size:15px;font-weight:500;cursor:none;transition:all .2s}
+.btn-outline:hover{border-color:rgba(255,255,255,0.22);background:rgba(255,255,255,0.03)}
+
+.stats-strip{display:flex;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface);overflow:hidden;max-width:680px;width:100%;position:relative}
+.stats-strip::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,0.04),rgba(124,58,255,0.04))}
+.stat{flex:1;padding:22px 20px;border-right:1px solid var(--border);text-align:center;position:relative}
+.stat:last-child{border:none}
+.stat-n{font-family:'Cabinet Grotesk',sans-serif;font-size:30px;font-weight:900;letter-spacing:-1.5px;background:linear-gradient(135deg,var(--cyan),var(--emerald));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-l{font-size:11px;color:var(--muted);margin-top:2px}
+
+section{padding:110px 24px}
+.wrap{max-width:1140px;margin:0 auto}
+.s-label{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+.s-title{font-family:'Cabinet Grotesk',sans-serif;font-size:clamp(38px,4.5vw,62px);font-weight:900;letter-spacing:-2.5px;line-height:1.03;margin-bottom:18px}
+.s-sub{font-size:17px;color:var(--muted2);max-width:500px;line-height:1.7}
+
+.marquee-section{padding:0;overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2)}
+.marquee-track{display:flex;animation:marquee 24s linear infinite;width:max-content}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.marquee-item{padding:18px 36px;font-family:'Cabinet Grotesk',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--muted);border-right:1px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:10px}
+.marquee-item span{font-size:16px}
+
+.problem-section{background:var(--bg2)}
+.p-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-top:64px}
+.p-card{background:var(--bg2);padding:40px 32px;transition:background .3s;position:relative;overflow:hidden}
+.p-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--emerald));transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.p-card:hover{background:var(--surface)}.p-card:hover::after{transform:scaleX(1)}
+.p-icon{font-size:32px;margin-bottom:20px}
+.p-tag{display:inline-block;background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.2);color:#FF6B6B;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:100px;margin-bottom:14px}
+.p-card h3{font-family:'Cabinet Grotesk',sans-serif;font-size:19px;font-weight:800;margin-bottom:10px}
+.p-card p{font-size:13px;color:var(--muted2);line-height:1.65}
+
+.steps-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:72px;position:relative}
+.steps-wrap::before{content:'';position:absolute;top:27px;left:calc(16.66% + 20px);right:calc(16.66% + 20px);height:1px;background:linear-gradient(90deg,var(--cyan),var(--emerald),var(--violet));opacity:.3}
+.step-bubble{width:56px;height:56px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Cabinet Grotesk',sans-serif;font-size:18px;font-weight:900;color:var(--cyan);margin-bottom:24px;position:relative;z-index:1;box-shadow:0 0 24px rgba(0,212,255,0.1)}
+.step h3{font-family:'Cabinet Grotesk',sans-serif;font-size:19px;font-weight:800;margin-bottom:10px}
+.step p{font-size:14px;color:var(--muted2);line-height:1.7}
+
+.demo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:72px}
+.demo-feats{margin-top:32px;display:flex;flex-direction:column;gap:16px}
+.d-feat{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:var(--r-sm);border:1px solid transparent;transition:all .3s}
+.d-feat:hover{border-color:var(--border2);background:var(--surface)}
+.d-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px}
+.d-icon.c{background:var(--cyan-dim);border:1px solid rgba(0,212,255,0.15)}
+.d-icon.e{background:var(--emerald-dim);border:1px solid rgba(0,255,178,0.15)}
+.d-icon.v{background:var(--violet-dim);border:1px solid rgba(124,58,255,0.15)}
+.d-feat h4{font-size:14px;font-weight:600;margin-bottom:3px}
+.d-feat p{font-size:13px;color:var(--muted2);line-height:1.5;margin:0}
+
+.phone{background:var(--surface);border:1px solid var(--border2);border-radius:32px;overflow:hidden;box-shadow:0 60px 120px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.04),0 0 80px rgba(0,212,255,0.06);max-width:360px;margin:0 auto;position:relative}
+.phone::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.5}
+.phone-top{background:var(--surface2);padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.p-bot-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--emerald));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.p-bot-info h4{font-size:13px;font-weight:600}
+.p-bot-status{font-size:11px;color:var(--emerald);display:flex;align-items:center;gap:5px}
+.p-bot-status::before{content:'';width:5px;height:5px;background:var(--emerald);border-radius:50%;display:inline-block;box-shadow:0 0 6px var(--emerald)}
+.chat{padding:18px;min-height:300px;display:flex;flex-direction:column;gap:12px;background:var(--bg2)}
+.m{display:flex;gap:8px;animation:mIn .35s ease both}
+@keyframes mIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.m.u{flex-direction:row-reverse}
+.bubble{background:var(--surface);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:4px;padding:10px 13px;font-size:12.5px;line-height:1.5;max-width:230px}
+.m.u .bubble{background:linear-gradient(135deg,var(--cyan),#00A8CC);border:none;border-radius:16px;border-bottom-right-radius:4px;color:#000;font-weight:500}
+.av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--emerald));display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:auto}
+.lcard{background:var(--surface2);border:1px solid rgba(0,212,255,0.2);border-radius:12px;padding:12px;font-size:11.5px}
+.lcard-head{font-weight:700;color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.lcard-head::before{content:'✓';color:var(--emerald)}
+.lrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.lrow:last-child{border:none}
+.lrow span:first-child{color:var(--muted)}
+.lrow span:last-child{font-weight:600;color:var(--text)}
+.chat-bar{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface)}
+.chat-inp{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:12px;color:var(--muted2);font-family:'Instrument Sans',sans-serif;outline:none;transition:border-color .2s;cursor:none}
+.chat-inp:focus{border-color:rgba(0,212,255,0.3)}
+.chat-send{background:var(--cyan);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:none;color:#000;font-size:14px;font-weight:700;transition:all .2s}
+.chat-send:hover{background:var(--emerald)}
+.typing{display:flex;gap:4px;padding:10px 13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:4px;width:fit-content}
+.td{width:5px;height:5px;background:var(--muted);border-radius:50%;animation:td 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+.ben-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:72px}
+.ben-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:30px;transition:all .3s;position:relative;overflow:hidden}
+.ben-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity .4s}
+.ben-card:hover::before{opacity:1}
+.ben-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.ben-card.wide{grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(0,255,178,0.03));border-color:rgba(0,212,255,0.12)}
+.ben-num{font-family:'Cabinet Grotesk',sans-serif;font-size:64px;font-weight:900;letter-spacing:-3px;background:linear-gradient(135deg,var(--cyan),var(--emerald));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:8px}
+.ben-icon{font-size:26px;margin-bottom:16px}
+.ben-card h3{font-family:'Cabinet Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px}
+.ben-card p{font-size:13px;color:var(--muted2);line-height:1.65}
+.bar-wrap{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.bar-label{font-size:11px;color:var(--muted2);margin-bottom:4px;display:flex;justify-content:space-between}
+.bar-bg{height:6px;background:var(--border2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width 1.5s ease}
+.bar-fill.c{background:linear-gradient(90deg,var(--cyan),var(--emerald))}
+.bar-fill.grey{background:var(--muted)}
+
+.uc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:60px}
+.uc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .3s}
+.uc:hover{border-color:rgba(0,212,255,0.2);transform:translateY(-4px)}
+.uc-top{padding:26px 24px 20px;border-bottom:1px solid var(--border)}
+.uc-em{font-size:28px;margin-bottom:12px;display:block}
+.uc-top h3{font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px}
+.uc-top span{font-size:11px;color:var(--muted)}
+.uc-body{padding:16px 24px 24px}
+.uc-body p{font-size:12.5px;color:var(--muted2);line-height:1.6;margin-bottom:12px}
+.tag{display:inline-block;background:var(--cyan-dim);border:1px solid rgba(0,212,255,0.15);color:var(--cyan);font-size:10px;padding:2px 8px;border-radius:100px;margin:2px 1px;font-weight:600}
+
+.testi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:72px}
+.testi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px;transition:all .3s;position:relative;overflow:hidden}
+.testi:hover{border-color:rgba(0,212,255,0.15);transform:translateY(-2px)}
+.testi::before{content:'"';position:absolute;top:-10px;right:24px;font-family:'Cabinet Grotesk',sans-serif;font-size:120px;font-weight:900;color:rgba(0,212,255,0.05);line-height:1;pointer-events:none}
+.stars{color:var(--amber);font-size:14px;letter-spacing:2px;margin-bottom:18px}
+.testi blockquote{font-size:15px;color:var(--muted2);line-height:1.75;margin-bottom:24px;font-style:italic;position:relative;z-index:1}
+.testi-author{display:flex;align-items:center;gap:14px}
+.t-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--emerald));display:flex;align-items:center;justify-content:center;font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:15px;color:#000;flex-shrink:0}
+.t-name{font-size:14px;font-weight:700}
+.t-role{font-size:12px;color:var(--muted)}
+.testi.featured{grid-column:span 2;background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(0,255,178,0.03));border-color:rgba(0,212,255,0.15)}
+.testi.featured blockquote{font-size:17px}
+
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:72px;max-width:780px;margin-left:auto;margin-right:auto}
+.price-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:36px;position:relative}
+.price-card.hot{border-color:rgba(0,212,255,0.25);background:linear-gradient(160deg,rgba(0,212,255,0.06),var(--surface))}
+.hot-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--cyan),var(--emerald));color:#000;font-size:11px;font-weight:700;padding:4px 16px;border-radius:100px;white-space:nowrap;letter-spacing:.3px}
+.p-lbl{font-size:12px;color:var(--muted2);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.p-amt{font-family:'Cabinet Grotesk',sans-serif;font-size:48px;font-weight:900;letter-spacing:-2.5px;line-height:1;margin-bottom:4px}
+.p-mo{font-size:14px;color:var(--muted2);margin-bottom:28px}
+.p-mo strong{color:var(--text)}
+.p-feats{list-style:none;margin-bottom:28px}
+.p-feats li{font-size:13.5px;color:var(--muted2);padding:9px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.p-feats li:last-child{border:none}
+.p-feats li::before{content:'✓';color:var(--emerald);font-weight:700;flex-shrink:0}
+.p-btn{width:100%;padding:13px;border-radius:100px;font-family:'Instrument Sans',sans-serif;font-size:14px;font-weight:600;cursor:none;transition:all .2s}
+.p-btn.c{background:var(--cyan);color:#000;border:none;box-shadow:0 0 30px rgba(0,212,255,0.2)}
+.p-btn.c:hover{transform:translateY(-1px);box-shadow:0 0 50px rgba(0,212,255,0.4)}
+.p-btn.g{background:transparent;color:var(--text);border:1px solid var(--border2)}
+.p-btn.g:hover{border-color:rgba(255,255,255,0.2)}
+
+.faq-wrap{max-width:700px;margin:72px auto 0}
+.faq-i{border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;overflow:hidden;transition:border-color .3s}
+.faq-i.open{border-color:rgba(0,212,255,0.2)}
+.faq-btn{width:100%;background:var(--surface);border:none;padding:20px 22px;text-align:left;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:15px;font-weight:500;cursor:none;display:flex;justify-content:space-between;align-items:center;transition:background .2s}
+.faq-btn:hover{background:var(--surface2)}
+.faq-arr{transition:transform .3s;color:var(--cyan);font-size:18px}
+.faq-i.open .faq-arr{transform:rotate(45deg)}
+.faq-body{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s;background:var(--bg2);font-size:14px;color:var(--muted2);line-height:1.75;padding:0 22px}
+.faq-i.open .faq-body{max-height:200px;padding:16px 22px 22px}
+
+.cta-section{background:var(--bg);padding:130px 24px;text-align:center;position:relative;overflow:hidden}
+.cta-glow{position:absolute;width:700px;height:500px;background:radial-gradient(ellipse,rgba(0,212,255,0.1) 0%,transparent 65%);bottom:-150px;left:50%;transform:translateX(-50%);pointer-events:none}
+.cta-glow2{position:absolute;width:400px;height:400px;background:radial-gradient(ellipse,rgba(0,255,178,0.07) 0%,transparent 65%);top:-100px;right:-100px;pointer-events:none}
+.cta-section h2{font-family:'Cabinet Grotesk',sans-serif;font-size:clamp(44px,6vw,80px);font-weight:900;letter-spacing:-3px;line-height:1.01;margin-bottom:20px;max-width:720px;margin-left:auto;margin-right:auto}
+.cta-section h2 em{font-style:normal;background:linear-gradient(90deg,var(--cyan),var(--emerald));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cta-section p{color:var(--muted2);font-size:18px;max-width:440px;margin:0 auto 44px;line-height:1.65}
+.cta-note{font-size:12px;color:var(--muted);margin-top:18px;letter-spacing:.3px}
+
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 52px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.f-logo{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:18px;color:var(--text);text-decoration:none}
+.f-logo em{color:var(--cyan);font-style:normal}
+footer p{font-size:12px;color:var(--muted)}
+.f-links{display:flex;gap:20px}
+.f-links a{font-size:12px;color:var(--muted);text-decoration:none;transition:color .2s}
+.f-links a:hover{color:var(--text)}
+
+.r{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
+.r.v{opacity:1;transform:translateY(0)}
+.r.d1{transition-delay:.1s}.r.d2{transition-delay:.2s}.r.d3{transition-delay:.3s}.r.d4{transition-delay:.4s}
+
+@media(max-width:960px){
+  nav{padding:14px 22px}.nav-links{display:none}
+  .p-grid,.steps-wrap,.ben-grid,.uc-grid,.testi-grid,.price-grid{grid-template-columns:1fr}
+  .ben-card.wide,.testi.featured{grid-column:span 1;grid-template-columns:1fr}
+  .demo-wrap{grid-template-columns:1fr}
+  footer{flex-direction:column;text-align:center;padding:36px 22px 28px}
+  body{cursor:auto}.cursor,.cursor-ring{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cur"></div>
+<div class="cursor-ring" id="ring"></div>
+
+<nav>
+  <a href="#" class="nav-logo">dial<em>io</em></a>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <button class="nav-pill" onclick="window.open('https://wa.me/491703279898?text=Ich%20m%C3%B6chte%20sehen%2C%20wie%20eine%20KI-L%C3%B6sung%20meinen%20Betrieb%20automatisch%20mit%20neuen%20Kundenanfragen%20versorgen%20kann%20%E2%80%94%20k%C3%B6nnen%20wir%20kurz%20sprechen%3F','_blank')">Demo anfragen &rarr;</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-orb1"></div>
+  <div class="hero-orb2"></div>
+  <div class="hero-tag"><div class="live-dot"></div>KI-Assistent · Handwerk & Dienstleistung</div>
+  <h1 class="hero-title">Kein Anruf<br><span class="line2">verpasst.</span><br><span class="line3">Kein Auftrag weg.</span></h1>
+  <p class="hero-sub">Ihr digitaler Assistent antwortet sofort — 24/7. Qualifiziert Anfragen automatisch und liefert fertige Leads direkt in Ihr Postfach.</p>
+  <div class="hero-btns">
+    <button class="btn-cyan" onclick="window.open('https://wa.me/491703279898?text=Ich%20m%C3%B6chte%20sehen%2C%20wie%20eine%20KI-L%C3%B6sung%20meinen%20Betrieb%20automatisch%20mit%20neuen%20Kundenanfragen%20versorgen%20kann%20%E2%80%94%20k%C3%B6nnen%20wir%20kurz%20sprechen%3F','_blank')">Kostenlose Demo anfragen &rarr;</button>
+    <button class="btn-outline" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Demo ansehen &darr;</button>
+  </div>
+  <div class="stats-strip">
+    <div class="stat"><div class="stat-n">3×</div><div class="stat-l">mehr Anfragen</div></div>
+    <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">immer erreichbar</div></div>
+    <div class="stat"><div class="stat-n">&lt;60s</div><div class="stat-l">Reaktionszeit</div></div>
+    <div class="stat"><div class="stat-n">0</div><div class="stat-l">verpasste Anfragen</div></div>
+  </div>
+</section>
+
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>🏗️</span>Bauunternehmen</div>
+    <div class="marquee-item"><span>🔧</span>Sanitär & Heizung</div>
+    <div class="marquee-item"><span>🏠</span>Renovierung & Umbau</div>
+    <div class="marquee-item"><span>⚡</span>Elektrobetriebe</div>
+    <div class="marquee-item"><span>🧹</span>Gebäudereinigung</div>
+    <div class="marquee-item"><span>🌿</span>Garten & Landschaft</div>
+    <div class="marquee-item"><span>🚗</span>KFZ-Dienstleister</div>
+    <div class="marquee-item"><span>🏢</span>Facility Management</div>
+    <div class="marquee-item"><span>📦</span>Umzugsunternehmen</div>
+    <div class="marquee-item"><span>🔑</span>Schlüsseldienste</div>
+    <div class="marquee-item"><span>🏗️</span>Bauunternehmen</div>
+    <div class="marquee-item"><span>🔧</span>Sanitär & Heizung</div>
+    <div class="marquee-item"><span>🏠</span>Renovierung & Umbau</div>
+    <div class="marquee-item"><span>⚡</span>Elektrobetriebe</div>
+    <div class="marquee-item"><span>🧹</span>Gebäudereinigung</div>
+    <div class="marquee-item"><span>🌿</span>Garten & Landschaft</div>
+    <div class="marquee-item"><span>🚗</span>KFZ-Dienstleister</div>
+    <div class="marquee-item"><span>🏢</span>Facility Management</div>
+    <div class="marquee-item"><span>📦</span>Umzugsunternehmen</div>
+    <div class="marquee-item"><span>🔑</span>Schlüsseldienste</div>
+  </div>
+</div>
+
+<section id="problem" class="problem-section">
+  <div class="wrap">
+    <div class="r">
+      <div class="s-label">Das Problem</div>
+      <h2 class="s-title">Kunden fragen.<br>Niemand antwortet.<br>Auftrag weg.</h2>
+      <p class="s-sub">Jeden Tag verlieren Betriebe Aufträge — nicht weil sie schlechte Arbeit leisten, sondern weil sie zu langsam reagieren.</p>
+    </div>
+    <div class="p-grid r" style="transition-delay:.15s">
+      <div class="p-card">
+        <div class="p-icon">🌙</div>
+        <div class="p-tag">Problem 01</div>
+        <h3>Anfragen nach Feierabend</h3>
+        <p>73 % aller Website-Besucher kommen abends oder am Wochenende. Wenn niemand antwortet, ist der Interessent beim nächsten Betrieb.</p>
+      </div>
+      <div class="p-card">
+        <div class="p-icon">📞</div>
+        <div class="p-tag">Problem 02</div>
+        <h3>Telefon klingelt im falschen Moment</h3>
+        <p>Auf der Baustelle, beim Kunden — der Anruf bleibt unbeantwortet. Der Interessent ruft den Mitbewerber an.</p>
+      </div>
+      <div class="p-card">
+        <div class="p-icon">📋</div>
+        <div class="p-tag">Problem 03</div>
+        <h3>Unqualifizierte Anfragen fressen Zeit</h3>
+        <p>20 Minuten Telefon — und dann fragt jemand: „Was kostet das ungefähr?" Wertvolle Zeit, die Sie nicht haben.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="wie" style="background:var(--bg)">
+  <div class="wrap">
+    <div class="r" style="text-align:center">
+      <div class="s-label">So funktioniert es</div>
+      <h2 class="s-title">Einmal eingerichtet.<br>Läuft für immer.</h2>
+    </div>
+    <div class="steps-wrap">
+      <div class="step r d1">
+        <div class="step-bubble">01</div>
+        <h3>Wir richten alles ein</h3>
+        <p>Konfiguration komplett auf Ihren Betrieb: Leistungen, Preisrahmen, Einzugsgebiet, Ihre Sprache. Einmal — fertig.</p>
+      </div>
+      <div class="step r d2">
+        <div class="step-bubble">02</div>
+        <h3>Der Assistent übernimmt</h3>
+        <p>Besucher schreiben — der KI-Assistent antwortet sofort, stellt die richtigen Fragen und qualifiziert jede Anfrage vor.</p>
+      </div>
+      <div class="step r d3">
+        <div class="step-bubble">03</div>
+        <h3>Sie bekommen fertige Leads</h3>
+        <p>Nur saubere, vorqualifizierte Anfragen im Postfach — mit Name, Adresse, Leistung und Zeitraum. Direkt einsatzbereit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demo" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="demo-wrap">
+      <div class="r">
+        <div class="s-label">Live Demo</div>
+        <h2 class="s-title">Sehen Sie,<br>wie es arbeitet</h2>
+        <p style="color:var(--muted2);font-size:16px;line-height:1.7;margin-bottom:4px">Kein Standard-Chatbot. Ihr Assistent kennt Ihre Leistungen, spricht Ihre Sprache — und führt jeden Besucher gezielt zur Anfrage.</p>
+        <div class="demo-feats">
+          <div class="d-feat">
+            <div class="d-icon c">⚡</div>
+            <div><h4>Sofortantwort</h4><p>Reaktionszeit unter 2 Sekunden — egal zu welcher Uhrzeit</p></div>
+          </div>
+          <div class="d-feat">
+            <div class="d-icon e">🎯</div>
+            <div><h4>Automatische Qualifizierung</h4><p>Fragt Leistung, Ort, Budget und Zeitraum ab — vor Ihrem ersten Kontakt</p></div>
+          </div>
+          <div class="d-feat">
+            <div class="d-icon v">📬</div>
+            <div><h4>Strukturierte Benachrichtigung</h4><p>Jede Anfrage als saubere Zusammenfassung direkt in Ihrem Postfach</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="r d2">
+        <div class="phone">
+          <div class="phone-top">
+            <div class="p-bot-av">🤖</div>
+            <div class="p-bot-info">
+              <h4>Müller Sanitär — Assistent</h4>
+              <div class="p-bot-status">Online — antwortet sofort</div>
+            </div>
+          </div>
+          <div class="chat" id="chatBody">
+            <div class="m" style="animation-delay:.1s">
+              <div class="av">🤖</div>
+              <div class="bubble">Hallo! Ich bin der Assistent von Müller Sanitär. Wie kann ich Ihnen helfen?</div>
+            </div>
+            <div class="m u" style="animation-delay:.5s">
+              <div class="bubble">Ich brauche einen neuen Boiler.</div>
+            </div>
+          </div>
+          <div class="chat-bar">
+            <input class="chat-inp" type="text" placeholder="Nachricht schreiben..." id="chatInput">
+            <button class="chat-send" onclick="sendMsg()">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="vorteile" style="background:var(--bg)">
+  <div class="wrap">
+    <div class="r" style="text-align:center">
+      <div class="s-label">Vorteile</div>
+      <h2 class="s-title">Was sich sofort ändert</h2>
+    </div>
+    <div class="ben-grid">
+      <div class="ben-card wide r">
+        <div>
+          <div class="ben-num">+284%</div>
+          <h3>Mehr Anfragen — ohne mehr Aufwand</h3>
+          <p>Besucher, die früher Ihre Website verlassen haben, werden jetzt abgeholt. Der Assistent spricht sie aktiv an — während Sie auf der Baustelle stehen.</p>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:22px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Anfragen / Monat</div>
+          <div class="bar-wrap" id="bars">
+            <div>
+              <div class="bar-label"><span>Ohne Assistent</span><span>3–5</span></div>
+              <div class="bar-bg"><div class="bar-fill grey" style="width:0%" data-w="22%"></div></div>
+            </div>
+            <div>
+              <div class="bar-label"><span>Mit Assistent</span><span style="color:var(--emerald)">12–18</span></div>
+              <div class="bar-bg"><div class="bar-fill c" style="width:0%" data-w="84%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ben-card r d1"><div class="ben-icon">🕐</div><h3>24/7 Erreichbarkeit</h3><p>Abends, am Wochenende, an Feiertagen — Ihr Assistent schläft nie.</p></div>
+      <div class="ben-card r d2"><div class="ben-icon">🔍</div><h3>Nur echte Anfragen</h3><p>Kein „Was kostet das ungefähr?" mehr. Der Assistent filtert, wer wirklich Interesse hat.</p></div>
+      <div class="ben-card r d1"><div class="ben-icon">⚙️</div><h3>Null Aufwand für Sie</h3><p>Kein technisches Wissen nötig. Wir richten alles ein — Sie sehen nur das Ergebnis.</p></div>
+      <div class="ben-card r d2"><div class="ben-icon">📱</div><h3>Funktioniert überall</h3><p>Handy, Tablet, Desktop — perfekt auf jedem Gerät, für jeden Kunden.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="branchen" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="r" style="text-align:center">
+      <div class="s-label">Zielgruppen</div>
+      <h2 class="s-title">Gemacht für Betriebe,<br>die liefern statt warten</h2>
+      <p class="s-sub" style="margin:0 auto">Handwerksbetriebe, Dienstleistungsunternehmen und lokale Serviceanbieter mit 5–50 Mitarbeitern.</p>
+    </div>
+    <div class="uc-grid">
+      <div class="uc r d1">
+        <div class="uc-top"><span class="uc-em">🏗️</span><h3>Bauunternehmen</h3><span>Hoch-, Tief- & Schlüsselfertig</span></div>
+        <div class="uc-body"><p>Qualifiziert Anfragen nach Projektgröße, Zeitraum und Budget. Kein unqualifizierter Erstkontakt.</p><span class="tag">Angebotsanfragen</span><span class="tag">Projektqualifizierung</span></div>
+      </div>
+      <div class="uc r d2">
+        <div class="uc-top"><span class="uc-em">🔧</span><h3>Sanitär & Heizung</h3><span>SHK-Betriebe & Installateure</span></div>
+        <div class="uc-body"><p>Notfall-Erkennung, Terminbuchung, Boiler-Anfragen — sofort vorqualifiziert.</p><span class="tag">Notfallanfragen</span><span class="tag">Terminbuchung</span></div>
+      </div>
+      <div class="uc r d3">
+        <div class="uc-top"><span class="uc-em">🏢</span><h3>Dienstleister</h3><span>Facility, Reinigung, Logistik</span></div>
+        <div class="uc-body"><p>Erfasst Objektgröße, Leistungsumfang und Wunschtermin — sauber strukturiert.</p><span class="tag">Objekterfassung</span><span class="tag">Rahmenverträge</span></div>
+      </div>
+      <div class="uc r d4">
+        <div class="uc-top"><span class="uc-em">🏠</span><h3>Renovierung & Umbau</h3><span>Maler, Trockenbau, Innenausbau</span></div>
+        <div class="uc-body"><p>Raum, Fläche, Wunschergebnis, Zeitplan — fertig für die Kalkulation.</p><span class="tag">Flächenerfassung</span><span class="tag">Materialberatung</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--
+  "Der Assistent hat unser Büro entlastet — Anfragen kommen jetzt sortiert rein, nicht mehr als rohe Anrufe zu jeder Tageszeit."
+  — Dominic Shala, Technischer Leiter Shala Bau GmbH, Westhausen
+-->
+<!--
+  "Als Prokurist interessiert mich vor allem eines: Wächst der Auftragseingang ohne proportional steigende Kosten? Die Antwort ist ja."
+  — Andreas Meyer, Prokurist Shala Firmengruppe, Westhausen
+-->
+<section id="stimmen" style="background:var(--bg)">
+  <div class="wrap">
+    <div class="r" style="text-align:center">
+      <div class="s-label">Referenzen</div>
+      <h2 class="s-title">Was Betriebe sagen</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi featured r">
+        <div class="stars">★★★★★</div>
+        <blockquote>„Der Assistent hat unser Büro spürbar entlastet. Anfragen kommen jetzt sortiert rein — nicht mehr als rohe Anrufe zu jeder Tageszeit. Das Team kann sich auf das Wesentliche konzentrieren."</blockquote>
+        <div class="testi-author">
+          <div class="t-av">DS</div>
+          <div><div class="t-name">Dominic Shala</div><div class="t-role">Technischer Leiter · Shala Bau GmbH, Westhausen</div></div>
+        </div>
+      </div>
+      <div class="testi r d1">
+        <div class="stars">★★★★★</div>
+        <blockquote>„Als Prokurist interessiert mich vor allem eines: Wächst der Auftragseingang ohne proportional steigende Kosten? Die Antwort nach drei Monaten ist eindeutig ja."</blockquote>
+        <div class="testi-author">
+          <div class="t-av">AM</div>
+          <div><div class="t-name">Andreas Meyer</div><div class="t-role">Prokurist · Shala Firmengruppe, Westhausen</div></div>
+        </div>
+      </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="faq" style="background:var(--bg)">
+  <div class="wrap">
+    <div class="r" style="text-align:center">
+      <div class="s-label">FAQ</div>
+      <h2 class="s-title">Häufige Fragen</h2>
+    </div>
+    <div class="faq-wrap r">
+      <div class="faq-i">
+        <button class="faq-btn" onclick="faq(this)">Muss ich technisches Wissen haben? <span class="faq-arr">+</span></button>
+        <div class="faq-body">Nein. Wir richten alles für Sie ein — von der Konfiguration bis zur Integration. Nach der Einrichtung läuft alles automatisch.</div>
+      </div>
+      <div class="faq-i">
+        <button class="faq-btn" onclick="faq(this)">Funktioniert das auch bei älteren Websites? <span class="faq-arr">+</span></button>
+        <div class="faq-body">Ja. Der Assistent funktioniert auf jeder Website — WordPress, Jimdo, Wix oder selbst gebaut. Integration via Code-Schnipsel, den wir einfügen.</div>
+      </div>
+      <div class="faq-i">
+        <button class="faq-btn" onclick="faq(this)">Wie lange dauert die Einrichtung? <span class="faq-arr">+</span></button>
+        <div class="faq-body">3–5 Werktage. Wir brauchen ein kurzes Gespräch (~30 Min.) um Ihren Betrieb zu verstehen. Den Rest erledigen wir vollständig.</div>
+      </div>
+      <div class="faq-i">
+        <button class="faq-btn" onclick="faq(this)">Was passiert, wenn ich kündigen will? <span class="faq-arr">+</span></button>
+        <div class="faq-body">Monatlich kündbar mit 4 Wochen Frist. Keine langen Laufzeiten, keine Strafen.</div>
+      </div>
+      <div class="faq-i">
+        <button class="faq-btn" onclick="faq(this)">Ist das DSGVO-konform? <span class="faq-arr">+</span></button>
+        <div class="faq-body">Ja. Alle Daten auf europäischen Servern. AVV wird abgeschlossen, alle nötigen Datenschutztexte werden bereitgestellt.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="cta">
+  <div class="cta-glow"></div><div class="cta-glow2"></div>
+  <div class="wrap" style="position:relative;z-index:1">
+    <div class="r">
+      <h2>Bereit für Ihren<br><em>digitalen Mitarbeiter?</em></h2>
+      <p>Kostenloses 30-Minuten-Gespräch. Wir zeigen Ihnen live, wie es für Ihren Betrieb aussehen würde.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-cyan" style="font-size:16px;padding:17px 40px" onclick="window.open('https://wa.me/491703279898?text=Ich%20m%C3%B6chte%20sehen%2C%20wie%20eine%20KI-L%C3%B6sung%20meinen%20Betrieb%20automatisch%20mit%20neuen%20Kundenanfragen%20versorgen%20kann%20%E2%80%94%20k%C3%B6nnen%20wir%20kurz%20sprechen%3F','_blank')">Jetzt kostenlose Demo anfragen &rarr;</button>
+        <button class="btn-outline" style="font-size:16px;padding:17px 40px" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Demo ansehen &darr;</button>
+      </div>
+      <p class="cta-note">Keine Verpflichtung · Keine Kreditkarte · Nur ein Gespräch</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a href="#" class="f-logo">dial<em>io</em></a>
+  <p>© 2025 Dialio · KI-Lösungen für Handwerk & Dienstleistung · Ostalbkreis</p>
+  <div class="f-links"><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">Kontakt</a></div>
+</footer>
+
+<script>
+const cur=document.getElementById('cur'),ring=document.getElementById('ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)}
+animRing();
+document.querySelectorAll('button,a').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='5px';cur.style.height='5px';ring.style.width='50px';ring.style.height='50px'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='10px';cur.style.height='10px';ring.style.width='36px';ring.style.height='36px'});
+});
+
+const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('v');obs.unobserve(x.target)}})},{threshold:.1});
+document.querySelectorAll('.r').forEach(el=>obs.observe(el));
+
+const barObs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.querySelectorAll('.bar-fill').forEach(b=>b.style.width=b.dataset.w);barObs.unobserve(x.target)}})},{threshold:.3});
+const bars=document.getElementById('bars');if(bars)barObs.observe(bars);
+
+function faq(btn){const i=btn.closest('.faq-i'),o=i.classList.contains('open');document.querySelectorAll('.faq-i').forEach(x=>x.classList.remove('open'));if(!o)i.classList.add('open')}
+
+const chatBody=document.getElementById('chatBody'),chatInput=document.getElementById('chatInput');
+let step=0;
+const replies=[
+  {d:900,t:'Gerne! In welchem Ort befinden Sie sich?'},
+  {d:1100,t:'Danke. Neu-Einbau oder Reparatur?'},
+  {d:1200,t:'Wann wäre ein Termin möglich — unter der Woche oder Wochenende?'},
+  {d:1400,card:true}
+];
+function addMsg(t,u=false){const d=document.createElement('div');d.className='m'+(u?' u':'');d.innerHTML=u?`<div class="bubble">${t}</div>`:`<div class="av">🤖</div><div class="bubble">${t}</div>`;chatBody.appendChild(d);chatBody.scrollTop=chatBody.scrollHeight}
+function addCard(){const d=document.createElement('div');d.className='m';d.innerHTML=`<div class="av">🤖</div><div><div class="bubble" style="margin-bottom:8px">Perfekt — alle Infos erfasst. Sie erhalten gleich eine E-Mail.</div><div class="lcard"><div class="lcard-head">Anfrage erfasst</div><div class="lrow"><span>Leistung</span><span>Boiler-Einbau</span></div><div class="lrow"><span>Ort</span><span>Aalen</span></div><div class="lrow"><span>Typ</span><span>Neuinstallation</span></div><div class="lrow"><span>Termin</span><span>Unter der Woche</span></div></div></div>`;chatBody.appendChild(d);chatBody.scrollTop=chatBody.scrollHeight}
+function addTyping(){const t=document.createElement('div');t.className='m';t.id='typing';t.innerHTML=`<div class="av">🤖</div><div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>`;chatBody.appendChild(t);chatBody.scrollTop=chatBody.scrollHeight;return t}
+function sendMsg(){const v=chatInput.value.trim();if(!v)return;addMsg(v,true);chatInput.value='';if(step<replies.length){const r=replies[step++];const t=addTyping();setTimeout(()=>{t.remove();r.card?addCard():addMsg(r.t)},r.d)}}
+chatInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
+</script>
+</body>
+</html>
